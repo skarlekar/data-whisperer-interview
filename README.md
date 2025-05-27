@@ -20,7 +20,12 @@ Find the blogpost relevant to this article at: https://lnkd.in/e3CpVUVa
 - Detailed feedback and scoring
 - Interview history tracking
 
+## Screenshots
+### Application Front-end
 ![Application Front-end](images/refactored-1.png)
+
+### The Dashboard
+![Dashboard](!images/refactored-2.png)
 
 ## Tech Stack
 
