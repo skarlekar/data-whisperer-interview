@@ -25,7 +25,7 @@ Find the blogpost relevant to this article at: https://lnkd.in/e3CpVUVa
 ![Application Front-end](images/refactored-1.png)
 
 ### The Dashboard
-![Dashboard](!images/refactored-2.png)
+![Dashboard](images/refactored-2.png)
 
 ## Tech Stack
 
