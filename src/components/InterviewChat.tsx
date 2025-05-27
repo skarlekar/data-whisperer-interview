@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,14 +7,23 @@ import { Progress } from '@/components/ui/progress';
 import { Send, User, MessageCircle } from 'lucide-react';
 import { InterviewState } from '@/pages/Index';
 import { getNextQuestion, evaluateResponse } from '@/lib/interviewEngine';
+import { EvaluationMethod } from './EvaluationMethodSelector';
 
 interface InterviewChatProps {
   interviewState: InterviewState;
   setInterviewState: React.Dispatch<React.SetStateAction<InterviewState>>;
   onCompleteInterview: (score: number, notes: string[], questions: Array<{questionIndex: number, question: string, response: string, score: number, note: string}>) => void;
+  evaluationMethod: EvaluationMethod;
+  apiKey: string | null;
 }
 
-export const InterviewChat = ({ interviewState, setInterviewState, onCompleteInterview }: InterviewChatProps) => {
+export const InterviewChat = ({ 
+  interviewState, 
+  setInterviewState, 
+  onCompleteInterview,
+  evaluationMethod,
+  apiKey 
+}: InterviewChatProps) => {
   const [currentResponse, setCurrentResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [askedQuestions, setAskedQuestions] = useState<Set<number>>(new Set([0])); // Track first question as asked
@@ -51,7 +59,13 @@ export const InterviewChat = ({ interviewState, setInterviewState, onCompleteInt
 
     try {
       // Evaluate the response
-      const evaluation = await evaluateResponse(responseText, interviewState.role, interviewState.currentQuestionIndex);
+      const evaluation = await evaluateResponse(
+        responseText, 
+        interviewState.role, 
+        interviewState.currentQuestionIndex,
+        evaluationMethod,
+        apiKey || undefined
+      );
       
       // Find the current question from messages
       const lastInterviewerMessage = [...interviewState.messages].reverse().find(msg => msg.sender === 'interviewer');

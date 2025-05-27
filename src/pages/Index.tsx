@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { InterviewChat } from '@/components/InterviewChat';
 import { InterviewSetup } from '@/components/InterviewSetup';
 import { InterviewSummary } from '@/components/InterviewSummary';
@@ -8,6 +8,9 @@ import { InterviewGuide } from '@/components/InterviewGuide';
 import { InterviewRecord, saveInterviewRecord } from '@/types/interview';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Plus, BookOpen, Sparkles, Brain, Database } from 'lucide-react';
+import { EvaluationMethodSelector, EvaluationMethod } from '@/components/EvaluationMethodSelector';
+import { ApiKeyInput } from '@/components/ApiKeyInput';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export type Role = 'data-scientist' | 'data-engineer';
 
@@ -31,6 +34,9 @@ export interface InterviewState {
 const Index = () => {
   const [currentView, setCurrentView] = useState<'interview' | 'dashboard' | 'detail' | 'guide'>('interview');
   const [selectedInterview, setSelectedInterview] = useState<InterviewRecord | null>(null);
+  const [evaluationMethod, setEvaluationMethod] = useState<EvaluationMethod>('deterministic');
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const [interviewState, setInterviewState] = useState<InterviewState>({
     phase: 'setup',
     candidateName: '',
@@ -41,7 +47,28 @@ const Index = () => {
     score: 0
   });
 
+  // Check for API key in environment variables
+  useEffect(() => {
+    const checkApiKey = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/check-api-key');
+        const data = await response.json();
+        if (data.hasApiKey) {
+          setApiKey('environment');
+        }
+      } catch (error) {
+        console.error('Error checking API key:', error);
+      }
+    };
+    checkApiKey();
+  }, []);
+
   const handleStartInterview = (name: string, role: Role) => {
+    if (evaluationMethod === 'llm' && !apiKey) {
+      setShowApiKeyDialog(true);
+      return;
+    }
+
     const startTime = new Date();
     setInterviewState(prev => ({
       ...prev,
@@ -140,6 +167,11 @@ const Index = () => {
     setCurrentView('detail');
   };
 
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    setShowApiKeyDialog(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
       {/* Background decoration */}
@@ -221,7 +253,13 @@ const Index = () => {
             {currentView === 'interview' && (
               <>
                 {interviewState.phase === 'setup' && (
-                  <InterviewSetup onStartInterview={handleStartInterview} />
+                  <div className="p-6 space-y-6">
+                    <EvaluationMethodSelector
+                      value={evaluationMethod}
+                      onChange={setEvaluationMethod}
+                    />
+                    <InterviewSetup onStartInterview={handleStartInterview} />
+                  </div>
                 )}
 
                 {interviewState.phase === 'interview' && (
@@ -229,6 +267,8 @@ const Index = () => {
                     interviewState={interviewState}
                     setInterviewState={setInterviewState}
                     onCompleteInterview={handleCompleteInterview}
+                    evaluationMethod={evaluationMethod}
+                    apiKey={apiKey}
                   />
                 )}
 
@@ -250,7 +290,7 @@ const Index = () => {
             )}
 
             {currentView === 'detail' && selectedInterview && (
-              <InterviewDetailView 
+              <InterviewDetailView
                 interview={selectedInterview}
                 onBack={() => setCurrentView('dashboard')}
               />
@@ -258,6 +298,15 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      <Dialog open={showApiKeyDialog} onOpenChange={setShowApiKeyDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Anthropic API Key</DialogTitle>
+          </DialogHeader>
+          <ApiKeyInput onApiKeySet={handleApiKeySet} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

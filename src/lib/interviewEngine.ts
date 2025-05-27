@@ -1,5 +1,6 @@
-
 import { Role } from '@/pages/Index';
+import { evaluateWithLLM } from './llmEvaluator';
+import { EvaluationMethod } from '@/components/EvaluationMethodSelector';
 
 interface QuestionSet {
   'data-scientist': string[];
@@ -47,7 +48,7 @@ export const getNextQuestion = (questionIndex: number, role: Role, askedQuestion
   return questions[questions.length - 1];
 };
 
-export const evaluateResponse = async (response: string, role: Role, questionIndex: number): Promise<{ score: number; note: string }> => {
+const evaluateDeterministic = (response: string, role: Role): { score: number; note: string } => {
   let score = 5; // Base score
   let notes: string[] = [];
   
@@ -111,4 +112,27 @@ export const evaluateResponse = async (response: string, role: Role, questionInd
     score,
     note: notes.join(', ') || 'Standard response'
   };
+};
+
+export const evaluateResponse = async (
+  response: string,
+  role: Role,
+  questionIndex: number,
+  evaluationMethod: EvaluationMethod,
+  apiKey?: string
+): Promise<{ score: number; note: string }> => {
+  console.log('Evaluation method:', evaluationMethod);
+  console.log('API key present:', !!apiKey);
+  
+  if (evaluationMethod === 'llm') {
+    if (!apiKey) {
+      console.error('No API key provided for LLM evaluation');
+      throw new Error('API key is required for LLM evaluation');
+    }
+    console.log('Using LLM evaluation');
+    return evaluateWithLLM(response, role, questionIndex, apiKey);
+  }
+  
+  console.log('Using deterministic evaluation');
+  return evaluateDeterministic(response, role);
 };
