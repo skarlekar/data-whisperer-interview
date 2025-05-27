@@ -1,73 +1,132 @@
-# Welcome to your Lovable project
+# Data Whisperer Interview Platform
 
-## Project info
+An interactive interview platform that evaluates candidate responses using either rule-based evaluation or AI-powered assessment through Claude.
 
-**URL**: https://lovable.dev/projects/3a8cb749-4e85-49b9-ae52-4d3ad71cf8f7
+## Features
 
-## How can I edit this code?
+- Interactive interview interface
+- Support for multiple roles (Data Scientist, Data Engineer, etc.)
+- Two evaluation methods:
+  - Rule-based deterministic evaluation
+  - AI-powered evaluation using Claude
+- Real-time response evaluation
+- Detailed feedback and scoring
+- Interview history tracking
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+### Frontend
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3a8cb749-4e85-49b9-ae52-4d3ad71cf8f7) and start prompting.
+### Backend
+- Node.js
+- Express
+- Anthropic Claude API
 
-Changes made via Lovable will be committed automatically to this repo.
+## Prerequisites
 
-**Use your preferred IDE**
+- Node.js (v14 or higher)
+- npm or yarn
+- Anthropic API key (for AI-powered evaluation)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/data-whisperer-interview.git
+cd data-whisperer-interview
+```
 
-Follow these steps:
+2. Install frontend dependencies:
+```bash
+npm install
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. Install backend dependencies:
+```bash
+cd backend
+npm install
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Configuration
 
-# Step 3: Install the necessary dependencies.
-npm i
+1. Set up environment variables for the backend:
+```bash
+# In the backend directory
+export ANTHROPIC_API_KEY=your-anthropic-api-key-here
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+2. Set up environment variables for the frontend:
+```bash
+# In the root directory
+echo "VITE_API_URL=http://localhost:3001" > .env
+```
+
+## Running the Application
+
+1. Start the backend server:
+```bash
+cd backend
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+2. In a new terminal, start the frontend:
+```bash
+# In the root directory
+npm run dev
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Open your browser and navigate to `http://localhost:3000`
 
-**Use GitHub Codespaces**
+## Usage
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Select the role for the interview (Data Scientist, Data Engineer, etc.)
+2. Choose the evaluation method:
+   - Rule-based: Uses predefined criteria for evaluation
+   - AI-powered: Uses Claude for dynamic evaluation
+3. If using AI-powered evaluation, provide your Anthropic API key when prompted
+4. Start the interview and answer the questions
+5. Receive real-time feedback and scoring
+6. View the final evaluation and recommendations
 
-## What technologies are used for this project?
+## Project Structure
 
-This project is built with:
+```
+data-whisperer-interview/
+├── src/                    # Frontend source code
+│   ├── components/        # React components
+│   ├── pages/            # Page components
+│   ├── types/            # TypeScript type definitions
+│   └── lib/              # Utility functions
+├── backend/              # Backend server
+│   ├── server.js        # Express server
+│   └── package.json     # Backend dependencies
+└── package.json         # Frontend dependencies
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Development
 
-## How can I deploy this project?
+### Frontend Development
+- The frontend is built with React and TypeScript
+- Uses Vite for fast development and building
+- Styled with Tailwind CSS
 
-Simply open [Lovable](https://lovable.dev/projects/3a8cb749-4e85-49b9-ae52-4d3ad71cf8f7) and click on Share -> Publish.
+### Backend Development
+- Express server handles API requests
+- Integrates with Anthropic's Claude API for AI-powered evaluation
+- Provides fallback to rule-based evaluation if AI evaluation fails
 
-## Can I connect a custom domain to my Lovable project?
+## Contributing
 
-Yes, you can!
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## License
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is licensed under the MIT License - see the LICENSE file for details.
