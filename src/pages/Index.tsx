@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { InterviewChat } from '@/components/InterviewChat';
 import { InterviewSetup } from '@/components/InterviewSetup';
@@ -8,7 +7,7 @@ import { InterviewDetailView } from '@/components/InterviewDetailView';
 import { InterviewGuide } from '@/components/InterviewGuide';
 import { InterviewRecord, saveInterviewRecord } from '@/types/interview';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Plus, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Plus, BookOpen, Sparkles, Brain, Database } from 'lucide-react';
 
 export type Role = 'data-scientist' | 'data-engineer';
 
@@ -142,82 +141,121 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-grid-slate-200/50 [mask-image:radial-gradient(ellipse_at_center,white,transparent)] pointer-events-none" />
+      <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-gradient-to-br from-blue-400/30 to-purple-600/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 translate-y-12 -translate-x-12 w-96 h-96 bg-gradient-to-tr from-emerald-400/30 to-cyan-600/30 rounded-full blur-3xl pointer-events-none" />
+      
+      <div className="container mx-auto px-4 py-8 relative">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          {/* Modern Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl mb-6 shadow-xl">
+              <Sparkles className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-4">
               AI Technical Interview Platform
             </h1>
-            <p className="text-lg text-gray-600 mb-6">
-              Enterprise-level screening for Data Science & Data Engineering roles
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Next-generation enterprise screening for Data Science & Data Engineering talent
             </p>
             
-            <div className="flex justify-center space-x-4">
+            {/* Enhanced Navigation */}
+            <div className="flex justify-center space-x-3">
               <Button
                 variant={currentView === 'interview' ? 'default' : 'outline'}
                 onClick={() => setCurrentView('interview')}
-                className="flex items-center space-x-2"
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 ${
+                  currentView === 'interview' 
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg scale-105' 
+                    : 'hover:scale-105 hover:shadow-md bg-white/70 backdrop-blur-sm border-gray-200'
+                }`}
               >
-                <Plus size={16} />
-                <span>New Interview</span>
+                <Plus size={18} />
+                <span className="font-medium">New Interview</span>
               </Button>
               <Button
                 variant={currentView === 'dashboard' ? 'default' : 'outline'}
                 onClick={() => setCurrentView('dashboard')}
-                className="flex items-center space-x-2"
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 ${
+                  currentView === 'dashboard' 
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg scale-105' 
+                    : 'hover:scale-105 hover:shadow-md bg-white/70 backdrop-blur-sm border-gray-200'
+                }`}
               >
-                <LayoutDashboard size={16} />
-                <span>Dashboard</span>
+                <LayoutDashboard size={18} />
+                <span className="font-medium">Dashboard</span>
               </Button>
               <Button
                 variant={currentView === 'guide' ? 'default' : 'outline'}
                 onClick={() => setCurrentView('guide')}
-                className="flex items-center space-x-2"
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 ${
+                  currentView === 'guide' 
+                    ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 shadow-lg scale-105' 
+                    : 'hover:scale-105 hover:shadow-md bg-white/70 backdrop-blur-sm border-gray-200'
+                }`}
               >
-                <BookOpen size={16} />
-                <span>Interview Guide</span>
+                <BookOpen size={18} />
+                <span className="font-medium">Interview Guide</span>
               </Button>
             </div>
           </div>
 
-          {currentView === 'interview' && (
-            <>
-              {interviewState.phase === 'setup' && (
-                <InterviewSetup onStartInterview={handleStartInterview} />
-              )}
-
-              {interviewState.phase === 'interview' && (
-                <InterviewChat 
-                  interviewState={interviewState}
-                  setInterviewState={setInterviewState}
-                  onCompleteInterview={handleCompleteInterview}
-                />
-              )}
-
-              {interviewState.phase === 'summary' && (
-                <InterviewSummary 
-                  interviewState={interviewState}
-                  onResetInterview={handleResetInterview}
-                />
-              )}
-            </>
+          {/* Role indicators */}
+          {currentView === 'interview' && interviewState.phase === 'setup' && (
+            <div className="flex justify-center space-x-6 mb-8">
+              <div className="flex items-center space-x-3 px-6 py-3 bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200 shadow-sm">
+                <Brain className="w-6 h-6 text-blue-600" />
+                <span className="font-medium text-gray-700">Data Science</span>
+              </div>
+              <div className="flex items-center space-x-3 px-6 py-3 bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200 shadow-sm">
+                <Database className="w-6 h-6 text-purple-600" />
+                <span className="font-medium text-gray-700">Data Engineering</span>
+              </div>
+            </div>
           )}
 
-          {currentView === 'dashboard' && (
-            <Dashboard onViewInterview={handleViewInterview} />
-          )}
+          {/* Main Content */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+            {currentView === 'interview' && (
+              <>
+                {interviewState.phase === 'setup' && (
+                  <InterviewSetup onStartInterview={handleStartInterview} />
+                )}
 
-          {currentView === 'guide' && (
-            <InterviewGuide />
-          )}
+                {interviewState.phase === 'interview' && (
+                  <InterviewChat 
+                    interviewState={interviewState}
+                    setInterviewState={setInterviewState}
+                    onCompleteInterview={handleCompleteInterview}
+                  />
+                )}
 
-          {currentView === 'detail' && selectedInterview && (
-            <InterviewDetailView 
-              interview={selectedInterview}
-              onBack={() => setCurrentView('dashboard')}
-            />
-          )}
+                {interviewState.phase === 'summary' && (
+                  <InterviewSummary 
+                    interviewState={interviewState}
+                    onResetInterview={handleResetInterview}
+                  />
+                )}
+              </>
+            )}
+
+            {currentView === 'dashboard' && (
+              <Dashboard onViewInterview={handleViewInterview} />
+            )}
+
+            {currentView === 'guide' && (
+              <InterviewGuide />
+            )}
+
+            {currentView === 'detail' && selectedInterview && (
+              <InterviewDetailView 
+                interview={selectedInterview}
+                onBack={() => setCurrentView('dashboard')}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
