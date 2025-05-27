@@ -2,6 +2,13 @@
 
 An interactive interview platform that evaluates candidate responses using either rule-based evaluation or AI-powered assessment through Claude.
 
+## Process Flow
+
+![Process Flow Diagram](images/process-flow.png)
+
+
+Find the blogpost relevant to this article at: https://lnkd.in/e3CpVUVa
+
 ## Features
 
 - Interactive interview interface
@@ -12,6 +19,8 @@ An interactive interview platform that evaluates candidate responses using eithe
 - Real-time response evaluation
 - Detailed feedback and scoring
 - Interview history tracking
+
+![Application Front-end] (images/refactored-1.png)
 
 ## Tech Stack
 
