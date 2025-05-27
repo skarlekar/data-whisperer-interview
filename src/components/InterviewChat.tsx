@@ -7,17 +7,19 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Send, User, MessageCircle } from 'lucide-react';
 import { InterviewState } from '@/pages/Index';
-import { getNextQuestion, evaluateResponse, generateFollowUp } from '@/lib/interviewEngine';
+import { getNextQuestion, evaluateResponse } from '@/lib/interviewEngine';
 
 interface InterviewChatProps {
   interviewState: InterviewState;
   setInterviewState: React.Dispatch<React.SetStateAction<InterviewState>>;
-  onCompleteInterview: (score: number, notes: string[]) => void;
+  onCompleteInterview: (score: number, notes: string[], questions: Array<{questionIndex: number, question: string, response: string, score: number, note: string}>) => void;
 }
 
 export const InterviewChat = ({ interviewState, setInterviewState, onCompleteInterview }: InterviewChatProps) => {
   const [currentResponse, setCurrentResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [askedQuestions, setAskedQuestions] = useState<Set<number>>(new Set([0])); // Track first question as asked
+  const [questionResponses, setQuestionResponses] = useState<Array<{questionIndex: number, question: string, response: string, score: number, note: string}>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -43,51 +45,74 @@ export const InterviewChat = ({ interviewState, setInterviewState, onCompleteInt
       messages: [...prev.messages, candidateMessage]
     }));
 
+    const responseText = currentResponse.trim();
     setCurrentResponse('');
     setIsLoading(true);
 
     try {
       // Evaluate the response
-      const evaluation = await evaluateResponse(currentResponse.trim(), interviewState.role);
+      const evaluation = await evaluateResponse(responseText, interviewState.role, interviewState.currentQuestionIndex);
       
-      // Generate next question or follow-up
-      let nextQuestion;
-      const shouldContinue = interviewState.currentQuestionIndex < 8;
+      // Find the current question from messages
+      const lastInterviewerMessage = [...interviewState.messages].reverse().find(msg => msg.sender === 'interviewer');
       
-      if (shouldContinue) {
-        if (Math.random() > 0.6) { // 40% chance for follow-up
-          nextQuestion = await generateFollowUp(currentResponse.trim(), interviewState.role);
-        } else {
-          nextQuestion = getNextQuestion(interviewState.currentQuestionIndex + 1, interviewState.role);
-          setInterviewState(prev => ({
-            ...prev,
-            currentQuestionIndex: prev.currentQuestionIndex + 1
-          }));
-        }
-      } else {
-        nextQuestion = "Thank you for sharing all of that information with me. Before we wrap up, do you have any questions about the role or our team? And what are you most excited about in your next opportunity?";
-      }
-
-      const interviewerMessage = {
-        id: (Date.now() + 1).toString(),
-        content: nextQuestion,
-        sender: 'interviewer' as const,
-        timestamp: new Date()
+      // Store the question-response pair
+      const newQuestionResponse = {
+        questionIndex: interviewState.currentQuestionIndex,
+        question: lastInterviewerMessage?.content || '',
+        response: responseText,
+        score: evaluation.score,
+        note: evaluation.note
       };
+      
+      setQuestionResponses(prev => [...prev, newQuestionResponse]);
 
-      setInterviewState(prev => ({
-        ...prev,
-        messages: [...prev.messages, interviewerMessage],
-        evaluationNotes: [...prev.evaluationNotes, evaluation.note]
-      }));
+      // Check if we should continue with more questions
+      const totalQuestionsAsked = askedQuestions.size;
+      
+      if (totalQuestionsAsked < 10) {
+        // Get next question
+        const nextQuestionIndex = interviewState.currentQuestionIndex + 1;
+        const nextQuestion = getNextQuestion(nextQuestionIndex, interviewState.role, askedQuestions);
+        
+        setAskedQuestions(prev => new Set([...prev, nextQuestionIndex]));
+        
+        const interviewerMessage = {
+          id: (Date.now() + 1).toString(),
+          content: nextQuestion,
+          sender: 'interviewer' as const,
+          timestamp: new Date()
+        };
 
-      // Check if interview should end
-      if (interviewState.currentQuestionIndex >= 8) {
+        setInterviewState(prev => ({
+          ...prev,
+          messages: [...prev.messages, interviewerMessage],
+          currentQuestionIndex: nextQuestionIndex,
+          evaluationNotes: [...prev.evaluationNotes, evaluation.note]
+        }));
+      } else {
+        // End the interview
+        const finalMessage = {
+          id: (Date.now() + 1).toString(),
+          content: "Thank you for taking the time to speak with me today. This concludes our interview. We'll be in touch soon with next steps!",
+          sender: 'interviewer' as const,
+          timestamp: new Date()
+        };
+
+        setInterviewState(prev => ({
+          ...prev,
+          messages: [...prev.messages, finalMessage],
+          evaluationNotes: [...prev.evaluationNotes, evaluation.note]
+        }));
+
+        // Calculate final score and complete interview
         setTimeout(() => {
-          const avgScore = interviewState.evaluationNotes.length > 0 
-            ? Math.round((interviewState.evaluationNotes.length * 7 + Math.random() * 3)) 
+          const allResponses = [...questionResponses, newQuestionResponse];
+          const avgScore = allResponses.length > 0 
+            ? Math.round((allResponses.reduce((sum, qa) => sum + qa.score, 0) / allResponses.length) * 10) / 10
             : 7;
-          onCompleteInterview(avgScore, [...interviewState.evaluationNotes, evaluation.note]);
+          
+          onCompleteInterview(avgScore, [...interviewState.evaluationNotes, evaluation.note], allResponses);
         }, 2000);
       }
 
@@ -109,7 +134,7 @@ export const InterviewChat = ({ interviewState, setInterviewState, onCompleteInt
     }
   };
 
-  const progress = Math.min((interviewState.currentQuestionIndex / 8) * 100, 100);
+  const progress = Math.min((askedQuestions.size / 10) * 100, 100);
 
   return (
     <div className="space-y-6">
@@ -123,7 +148,9 @@ export const InterviewChat = ({ interviewState, setInterviewState, onCompleteInt
           </Badge>
         </div>
         <div className="text-right">
-          <div className="text-sm text-gray-600 mb-1">Progress</div>
+          <div className="text-sm text-gray-600 mb-1">
+            Progress ({askedQuestions.size}/10 questions)
+          </div>
           <div className="w-32">
             <Progress value={progress} className="h-2" />
           </div>

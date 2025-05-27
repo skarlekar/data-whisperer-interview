@@ -15,7 +15,9 @@ const INTERVIEW_QUESTIONS: QuestionSet = {
     "Tell me about a time you helped mentor someone or shared knowledge with your team. How do you approach knowledge transfer?",
     "What's the most recent skill or concept you've learned, and how have you applied it in your work?",
     "Describe a time when a project didn't go as planned. What did you learn, and how did you adapt?",
-    "How do you balance technical innovation with business constraints when stakeholders have different priorities?"
+    "How do you balance technical innovation with business constraints when stakeholders have different priorities?",
+    "How do you ensure your machine learning models are scalable and maintainable in production?",
+    "Do you have any questions about the role or our team?"
   ],
   'data-engineer': [
     "What drew you to data engineering, and how has the field evolved since you started?",
@@ -25,104 +27,81 @@ const INTERVIEW_QUESTIONS: QuestionSet = {
     "Have you worked with data governance or compliance frameworks? How do you ensure your pipelines meet these requirements?",
     "Tell me about a time you mentored a junior engineer or led a knowledge-sharing initiative. What was your approach?",
     "What's the most recent technology or tool you've learned, and how have you integrated it into your work?",
-    "Describe a time when you had to optimize a poorly performing data system. What was your methodology?"
+    "Describe a time when you had to optimize a poorly performing data system. What was your methodology?",
+    "How do you design data architectures that can scale with growing business needs?",
+    "Do you have any questions about the role or our team?"
   ]
 };
 
-const FOLLOW_UP_TEMPLATES = {
-  'data-scientist': [
-    "That's a great example. How did you validate that your model was performing well in production?",
-    "Interesting approach. How did you communicate these technical findings to non-technical stakeholders?",
-    "Can you tell me more about how you handled any unexpected results or edge cases?",
-    "How did you ensure your solution was scalable and maintainable for other team members?",
-    "What would you do differently if you had to tackle a similar problem today?"
-  ],
-  'data-engineer': [
-    "That sounds complex. How did you monitor and maintain that pipeline once it was in production?",
-    "Great solution. How did you ensure the pipeline could handle increased data volume over time?",
-    "Can you elaborate on how you handled error recovery and data consistency?",
-    "How did you collaborate with data scientists or analysts who were consuming this data?",
-    "What would you optimize or change if you were to rebuild that system today?"
-  ]
-};
-
-export const getNextQuestion = (questionIndex: number, role: Role): string => {
+export const getNextQuestion = (questionIndex: number, role: Role, askedQuestions: Set<number>): string => {
   const questions = INTERVIEW_QUESTIONS[role];
-  if (questionIndex < questions.length) {
-    return questions[questionIndex];
+  
+  // Find the next unasked question
+  for (let i = questionIndex; i < questions.length; i++) {
+    if (!askedQuestions.has(i)) {
+      return questions[i];
+    }
   }
-  return "Thank you for sharing all of that. Do you have any questions about the role or our team?";
+  
+  // If we've asked all questions, return the final question
+  return questions[questions.length - 1];
 };
 
-export const generateFollowUp = async (response: string, role: Role): Promise<string> => {
-  // In a real implementation, this would use an LLM API
-  // For now, we'll use template-based follow-ups
-  const templates = FOLLOW_UP_TEMPLATES[role];
-  const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
-  
-  // Add some variation based on response content
-  if (response.toLowerCase().includes('machine learning') || response.toLowerCase().includes('model')) {
-    return "That's interesting. Can you walk me through how you approached the model validation and testing process?";
-  }
-  
-  if (response.toLowerCase().includes('team') || response.toLowerCase().includes('collaborate')) {
-    return "Great to hear about the collaboration aspect. How do you typically handle disagreements or different technical opinions within the team?";
-  }
-  
-  if (response.toLowerCase().includes('challenge') || response.toLowerCase().includes('problem')) {
-    return "That sounds like a significant challenge. What was your decision-making process when you hit roadblocks?";
-  }
-  
-  return randomTemplate;
-};
-
-export const evaluateResponse = async (response: string, role: Role): Promise<{ score: number; note: string }> => {
-  // In a real implementation, this would use an LLM for evaluation
-  // For demo purposes, we'll use simple heuristics
-  
+export const evaluateResponse = async (response: string, role: Role, questionIndex: number): Promise<{ score: number; note: string }> => {
   let score = 5; // Base score
   let notes: string[] = [];
   
   // Check for technical depth
   const technicalKeywords = role === 'data-scientist' 
-    ? ['machine learning', 'model', 'algorithm', 'statistical', 'analysis', 'python', 'sql', 'feature']
-    : ['pipeline', 'etl', 'database', 'architecture', 'scaling', 'streaming', 'batch', 'infrastructure'];
+    ? ['machine learning', 'model', 'algorithm', 'statistical', 'analysis', 'python', 'sql', 'feature', 'data science']
+    : ['pipeline', 'etl', 'database', 'architecture', 'scaling', 'streaming', 'batch', 'infrastructure', 'data engineering'];
   
   const hasTechnicalContent = technicalKeywords.some(keyword => 
     response.toLowerCase().includes(keyword)
   );
   
   if (hasTechnicalContent) {
-    score += 1;
-    notes.push("Shows technical knowledge");
+    score += 2;
+    notes.push("Strong technical knowledge");
   }
   
   // Check for collaboration mentions
-  const collaborationKeywords = ['team', 'collaborate', 'mentor', 'share', 'teach', 'help'];
+  const collaborationKeywords = ['team', 'collaborate', 'mentor', 'share', 'teach', 'help', 'stakeholder'];
   const hasCollaboration = collaborationKeywords.some(keyword => 
     response.toLowerCase().includes(keyword)
   );
   
   if (hasCollaboration) {
     score += 1;
-    notes.push("Demonstrates collaboration skills");
+    notes.push("Good collaboration skills");
   }
   
   // Check for problem-solving approach
-  const problemSolvingKeywords = ['approach', 'solution', 'process', 'method', 'strategy', 'analyze'];
+  const problemSolvingKeywords = ['approach', 'solution', 'process', 'method', 'strategy', 'analyze', 'challenge'];
   const hasProblemSolving = problemSolvingKeywords.some(keyword => 
     response.toLowerCase().includes(keyword)
   );
   
   if (hasProblemSolving) {
     score += 1;
-    notes.push("Shows structured problem-solving");
+    notes.push("Structured problem-solving");
   }
   
   // Check response length and detail
   if (response.length > 200) {
     score += 1;
-    notes.push("Provides detailed responses");
+    notes.push("Detailed responses");
+  }
+  
+  // Check for enterprise experience
+  const enterpriseKeywords = ['enterprise', 'large-scale', 'production', 'governance', 'compliance'];
+  const hasEnterprise = enterpriseKeywords.some(keyword => 
+    response.toLowerCase().includes(keyword)
+  );
+  
+  if (hasEnterprise) {
+    score += 1;
+    notes.push("Enterprise experience");
   }
   
   // Cap the score at 10
