@@ -5,9 +5,10 @@ import { InterviewSetup } from '@/components/InterviewSetup';
 import { InterviewSummary } from '@/components/InterviewSummary';
 import { Dashboard } from '@/components/Dashboard';
 import { InterviewDetailView } from '@/components/InterviewDetailView';
+import { InterviewGuide } from '@/components/InterviewGuide';
 import { InterviewRecord, saveInterviewRecord } from '@/types/interview';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Plus } from 'lucide-react';
+import { LayoutDashboard, Plus, BookOpen } from 'lucide-react';
 
 export type Role = 'data-scientist' | 'data-engineer';
 
@@ -29,7 +30,7 @@ export interface InterviewState {
 }
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'interview' | 'dashboard' | 'detail'>('interview');
+  const [currentView, setCurrentView] = useState<'interview' | 'dashboard' | 'detail' | 'guide'>('interview');
   const [selectedInterview, setSelectedInterview] = useState<InterviewRecord | null>(null);
   const [interviewState, setInterviewState] = useState<InterviewState>({
     phase: 'setup',
@@ -169,6 +170,14 @@ const Index = () => {
                 <LayoutDashboard size={16} />
                 <span>Dashboard</span>
               </Button>
+              <Button
+                variant={currentView === 'guide' ? 'default' : 'outline'}
+                onClick={() => setCurrentView('guide')}
+                className="flex items-center space-x-2"
+              >
+                <BookOpen size={16} />
+                <span>Interview Guide</span>
+              </Button>
             </div>
           </div>
 
@@ -197,6 +206,10 @@ const Index = () => {
 
           {currentView === 'dashboard' && (
             <Dashboard onViewInterview={handleViewInterview} />
+          )}
+
+          {currentView === 'guide' && (
+            <InterviewGuide />
           )}
 
           {currentView === 'detail' && selectedInterview && (
