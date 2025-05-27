@@ -20,7 +20,16 @@ export interface InterviewRecord {
 
 export const getStoredInterviews = (): InterviewRecord[] => {
   const stored = localStorage.getItem('interview-records');
-  return stored ? JSON.parse(stored) : [];
+  if (!stored) return [];
+  
+  const parsed = JSON.parse(stored);
+  
+  // Convert string dates back to Date objects
+  return parsed.map((interview: any) => ({
+    ...interview,
+    startTime: new Date(interview.startTime),
+    endTime: new Date(interview.endTime)
+  }));
 };
 
 export const saveInterviewRecord = (record: InterviewRecord): void => {
